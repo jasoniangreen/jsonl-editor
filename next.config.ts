@@ -1,5 +1,7 @@
 import type {NextConfig} from 'next';
 
+const repoName = 'jsonl-editor';
+
 const nextConfig: NextConfig = {
   /* config options here */
   output: 'export',
@@ -21,6 +23,8 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  basePath: `/${repoName}`,
+  assetPrefix: `/${repoName}/`,
 };
 
 export default nextConfig;
