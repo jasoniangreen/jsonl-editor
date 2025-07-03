@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { ChangeEvent } from "react";
@@ -13,7 +12,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Edit3, Check, X } from "lucide-react";
+import { Edit3, Check, X, ArrowUp, ArrowDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
@@ -32,6 +31,8 @@ export function JsonLTable({ allHeaders, visibleColumnHeaders, rows, onCellChang
   const [editingRowIndex, setEditingRowIndex] = useState<number | null>(null);
   const [currentEditRowValues, setCurrentEditRowValues] = useState<Record<string, string> | null>(null);
   const { toast } = useToast();
+  const [sortBy, setSortBy] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
   // Effect to handle resetting edit mode if the currently edited row becomes invalid
   // (e.g., due to data changing from elsewhere, or rows array becoming empty)
@@ -143,6 +144,33 @@ export function JsonLTable({ allHeaders, visibleColumnHeaders, rows, onCellChang
     }));
   };
 
+  const handleSort = (header: string) => {
+    if (sortBy === header) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(header);
+      setSortDirection('asc');
+    }
+  };
+
+  // Sort rows if sortBy is set
+  const sortedRows = React.useMemo(() => {
+    if (!sortBy) return rows;
+    const sorted = [...rows].sort((a, b) => {
+      const aVal = a[sortBy];
+      const bVal = b[sortBy];
+      if (aVal == null && bVal == null) return 0;
+      if (aVal == null) return 1;
+      if (bVal == null) return -1;
+      const aStr = String(aVal).toLowerCase();
+      const bStr = String(bVal).toLowerCase();
+      if (aStr < bStr) return sortDirection === 'asc' ? -1 : 1;
+      if (aStr > bStr) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+    return sorted;
+  }, [rows, sortBy, sortDirection]);
+
   if (!rows) return null;
 
 
@@ -153,7 +181,16 @@ export function JsonLTable({ allHeaders, visibleColumnHeaders, rows, onCellChang
           <TableRow>
             {visibleColumnHeaders.map((header) => (
               <TableHead key={header} className={cn("font-semibold text-primary-foreground bg-primary/90 sticky top-0 z-10", DEFAULT_MIN_WIDTH)}>
-                {header}
+                <button
+                  type="button"
+                  className="flex items-center gap-1 hover:underline focus:outline-none"
+                  onClick={() => handleSort(header)}
+                >
+                  {header}
+                  {sortBy === header && (
+                    sortDirection === 'asc' ? <ArrowUp className="w-3 h-3 ml-1" /> : <ArrowDown className="w-3 h-3 ml-1" />
+                  )}
+                </button>
               </TableHead>
             ))}
             {(allHeaders.length > 0 && rows.length > 0 && visibleColumnHeaders.length > 0) && (
@@ -162,7 +199,7 @@ export function JsonLTable({ allHeaders, visibleColumnHeaders, rows, onCellChang
           </TableRow>
         </TableHeader>
         <TableBody>
-          {rows.map((row, rowIndex) => (
+          {sortedRows.map((row, rowIndex) => (
             <TableRow key={rowIndex} className="hover:bg-muted/50">
               {visibleColumnHeaders.map((header) => {
                 const isRowCurrentlyEditing = editingRowIndex === rowIndex;
