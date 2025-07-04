@@ -227,6 +227,14 @@ export default function HomePage() {
     });
   };
 
+  const handleColumnDoubleClick = (columnKey: string) => {
+    setVisibleColumns([columnKey]);
+    toast({
+      title: "Single Column Selected",
+      description: `Only "${columnKey}" is now visible.`,
+    });
+  };
+
 
   return (
     <div className="min-h-screen flex flex-col items-center p-4 sm:p-8 selection:bg-accent selection:text-accent-foreground">
@@ -305,13 +313,18 @@ export default function HomePage() {
                     <DropdownMenuContent align="start">
                       <DropdownMenuLabel>Visible Columns</DropdownMenuLabel>
                       <DropdownMenuSeparator />
+                      <div className="px-2 py-1 text-xs text-muted-foreground border-b border-border">
+                        💡 Double-click to show only this column
+                      </div>
                       <ScrollArea className="h-auto max-h-[200px] md:max-h-[300px] overflow-y-auto">
                         {allHeaders.map((header) => (
                           <DropdownMenuCheckboxItem
                             key={header}
                             checked={visibleColumns.includes(header)}
                             onCheckedChange={() => handleColumnVisibilityChange(header)}
-                            onSelect={(e) => e.preventDefault()} 
+                            onSelect={(e) => e.preventDefault()}
+                            onDoubleClick={() => handleColumnDoubleClick(header)}
+                            className="cursor-pointer"
                           >
                             {header}
                           </DropdownMenuCheckboxItem>
